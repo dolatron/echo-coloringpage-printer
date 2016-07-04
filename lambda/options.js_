@@ -1,0 +1,18 @@
+// If you setup basic auth in settings.json, change the username and password here.  
+// Otherwise, just leave this alone and it will work without auth.
+var auth = new Buffer("username" + ":" + "password").toString("base64");
+
+var options = {
+  appid: "your echo app id",
+  host: "your hostname",
+  port: "6006",
+  headers: {
+      'Authorization': 'Basic ' + auth,
+      'Content-Type': 'application/json'
+  },
+  useHttps: true, // Change to true if you setup HTTPS
+  rejectUnauthorized: true, // Change to false if you self-signed your certificate
+};
+
+module.exports = options;
+

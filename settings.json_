@@ -1,0 +1,7 @@
+{
+      "port": 6005,
+      "securePort": 6006,
+      "filesPath":"pages",      
+      "printer": "EPSON_WF-3520_Series",
+      "printerOpts": "Letter,ENV_NORMAL,MONO"
+}    

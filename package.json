@@ -1,0 +1,19 @@
+{
+  "name": "echo-coloringpage-printer",
+  "version": "0.1.0",
+  "description": "A simple node app for printing coloring pages",
+  "scripts": {
+    "start": "node pserver.js"
+  },
+  "engines": {
+    "node": ">=4.0.0 <6.0.0",
+    "npm": "^2.0.0"
+  },
+  "license": "MIT",
+  "main": "pserver.js",
+  "dependencies": {
+    "node-printer": "1.0.2",
+    "express": "4.14.0",
+    "basic-auth-connect": "1.0.0"
+  }
+}
