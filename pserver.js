@@ -22,7 +22,7 @@ try {
   return;
 }
 
-
+//authenticate user
 if (settings.auth) {
 //add this block to settings.json for auth support
 //"auth": { 
@@ -66,9 +66,9 @@ if (settings.https) {
   }
 }
 
-// Load printable pages into array
-var pages = path.resolve(__dirname, settings.filesPath);
-var files = fs.readdirSync(pages);
+//load printable pages into array
+var fp = path.resolve(__dirname, settings.filesPath);
+var files = fs.readdirSync(fp);
 console.log ('found:', files.length, 'printable pages');
 
 //set up printer 
@@ -78,42 +78,29 @@ var popt = {
 }
 
 //handle print request
-app.get('/print', function(req, res) {
-  var params = req.url.substring(1).split('/');
+app.get('/print/:pages?', function(req, res) {
+  var pages = req.params.pages;  //count of pages requested
 
-  var action = params[0]; //print action
-  var times = params[1];  //count of pages requested
-  console.log(action, 'action requested [', times, '] times');
+  console.log('print action requested [', pages, '] times');
 
   //only print a max of 10 pages at a time, if more are requested print just 1
-  if (isNaN(times) || times > 10) { times = 1; }
+  if (isNaN(pages) || pages > 10) { pages = 1; }
 
-  //handle print atction
-  if (action == 'print') {
-    for (var i=0; i<times; i++) {
-      //load coloring pages into array
-      if (files.length == 0) {
-        files = fs.readdirSync(pages);
-      }
-      //pick a page at random & remove it from the array of printable pages
-      var rand = Math.floor(Math.random() * (files.length));
-      var p = 'pages/' + files[rand];
-      printer.printFile(p, popt);
-      console.log ('pages/', files[rand], '?=', rand);
-
-      //remove page from array to reduce repeats
-      files.splice(rand, 1)
-      console.log ('removed index [', rand, '] from files array. new len [', files.length, ']');
+  for (var i=0; i<pages; i++) {
+    //load coloring pages into array
+    if (files.length == 0) {
+      files = fs.readdirSync(fp);
     }
-  }
-  res.send(JSON.stringify({success: action + ' action requested ' + times + ' times'}));   
-}); 
+    //pick a page at random & remove it from the array of printable pages
+    var rand = Math.floor(Math.random() * (files.length));
+    var p = 'pages/' + files[rand];
+    printer.printFile(p, popt);
+    console.log ('pages/', files[rand], '?=', rand);
 
-//generic handler
-app.get('/*', function(req, res) {
-  var params = req.url.substring(1).split('/');
-  var action = params[0]; //action
-  console.log(action, 'action requested ');
-  
-  res.send(JSON.stringify({error: 'action [\'' + action + '\'] not found'}));
-});    
+    //remove page from array to reduce repeats
+    files.splice(rand, 1)
+    console.log ('removed index [', rand, '] from files array. new len [', files.length, ']');
+  }
+
+  res.send(JSON.stringify({success: 'print action requested ' + pages + ' times'}));   
+});  
