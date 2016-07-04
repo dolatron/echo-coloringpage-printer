@@ -69,7 +69,7 @@ if (settings.https) {
 //load printable pages into array
 var fp = path.resolve(__dirname, settings.filesPath);
 var files = fs.readdirSync(fp);
-console.log ('found:', files.length, 'printable pages');
+console.log ('found:', files.length, 'printable pages in', fp);
 
 //set up printer 
 var printer = new nodeprinter(settings.printer);
@@ -93,9 +93,9 @@ app.get('/print/:pages?', function(req, res) {
     }
     //pick a page at random & remove it from the array of printable pages
     var rand = Math.floor(Math.random() * (files.length));
-    var p = 'pages/' + files[rand];
+    var p = fp + '/' + files[rand];
     printer.printFile(p, popt);
-    console.log ('pages/', files[rand], '?=', rand);
+    console.log ('printed file', files[rand], 'from postion', rand);
 
     //remove page from array to reduce repeats
     files.splice(rand, 1)
