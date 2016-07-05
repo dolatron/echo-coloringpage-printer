@@ -1,0 +1,6 @@
+PrintIntent to print {Pages} coloring pages
+PrintIntent to print me {Pages} coloring pages
+PrintIntent to print {Person} {Pages} coloring pages
+PrintIntent to print {Person} a coloring page
+PrintIntent to print coloring pages
+PrintIntent to print me coloring pages

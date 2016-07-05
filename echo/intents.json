@@ -1,0 +1,17 @@
+{
+  "intents": [
+    {
+      "intent": "PrintIntent",
+      "slots": [
+        {
+          "name": "Pages",
+          "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "Person",
+          "type": "Person"
+        }
+      ]
+    }
+  ]
+}
