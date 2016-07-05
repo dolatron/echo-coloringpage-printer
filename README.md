@@ -2,9 +2,10 @@
 A simple Alexa Skill to print coloring pages using Lambda and a Raspberry Pi with Node.JS
 
 <h3>PI</h3>
-- CUPS
-- FOREVER/NPM
-- CERTS
+1. Install CUPS on your Pi & add your printer there is a good guide here: http://www.penguintutor.com/linux/printing-cups
+2. npm install
+3. update configuration
+4. if you want to use https & basic auth (recommended, configure them now)
 
 <h3>ALEXA</h3>
 1. Create a new Alexa Skill 
