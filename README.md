@@ -11,6 +11,7 @@ A simple Alexa Skill to print coloring pages using Lambda and a Raspberry Pi wit
 7. configure https (recommended but not required - see code in pserver.js for how to configure [I used letsencrypt.org for my cert])
 8. npm start from the project root directory will start your print server 
 9. Once your are sure that everything is working, I recommend using forever (or another service daemon) to manage the pserver process in the background.
+10. make sure that whichever port you've configured for pserver to run on is accessible outside of your firewall
 
 <h3>ALEXA</h3>
 1. Create a new Alexa Skill 
