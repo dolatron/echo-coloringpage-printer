@@ -7,6 +7,7 @@ var http = require('http');
 var https = require('https');
 var basicAuth = require('basic-auth-connect');
 var express = require('express');
+var fuzzy = require('fuzzy');
 var app = express();
 var server;
 
@@ -31,7 +32,6 @@ if (settings.auth) {
 //}        
   app.use(basicAuth(settings.auth.username, settings.auth.password));
 }
-
 
 //configure and start server
 if (settings.https) {
@@ -71,17 +71,22 @@ var fp = path.resolve(__dirname, settings.filesPath);
 var files = fs.readdirSync(fp);
 console.log ('found:', files.length, 'printable pages in', fp);
 
-//set up printer 
-var printer = new nodeprinter(settings.printer);
-var popt = {
-  media: settings.printerOpts
-}
-
 //handle print request
-app.get('/print/:pages?', function(req, res) {
-  var pages = req.params.pages;  //count of pages requested
+app.get('/print/:pages?/:search?', function(req, res) {
+  var pages = req.params.pages
+  var search = req.params.search
+  printPages(pages, search);  //count of pages requested
+  res.send(JSON.stringify({success: 'print action "' + search + '" requested ' + pages + 'times'}));
+})
 
+function printPages(pages, search) {
   console.log('print action requested [', pages, '] times');
+
+  //set up printer
+    var printer = new nodeprinter(settings.printer);
+    var popt = {
+    media: settings.printerOpts
+  }
 
   //only print a max of 10 pages at a time, if more are requested print just 1
   if (isNaN(pages) || pages > 10) { pages = 1; }
@@ -92,15 +97,42 @@ app.get('/print/:pages?', function(req, res) {
       files = fs.readdirSync(fp);
     }
     //pick a page at random & remove it from the array of printable pages
-    var rand = Math.floor(Math.random() * (files.length));
-    var p = fp + '/' + files[rand];
-    printer.printFile(p, popt);
-    console.log ('printed file', files[rand], 'from postion', rand);
+    var pfile = getPage(search);
+    if (pfile) {
+      var p = fp + '/' + pfile;
+      printer.printFile(p, popt);
+      console.log ('printed file:', pfile);
+    }
+  }
+}
 
-    //remove page from array to reduce repeats
-    files.splice(rand, 1)
-    console.log ('removed index [', rand, '] from files array. new len [', files.length, ']');
+function getPage(search) {
+  //clean search string to remove spaces and trailing /\W|s$/g
+
+  search = search ? search.toLowerCase().replace(/\W/g,'') : ''
+
+  //see if there are any matches
+  var found = find(search, files)
+
+  //if there are less than 5 matches, start removing characters until we find more
+  while (found.length < 5 && search.length > 0) {
+    search = search.substring(0, search.length-1)
+    found = found.concat(find(search))
   }
 
-  res.send(JSON.stringify({success: 'print action requested ' + pages + ' times'}));   
-});  
+  //as long as we have some results - return one
+  if (found.length > 0) {
+    console.log ('matched:', found.length, 'pages')
+    var rand = Math.floor(Math.random() * (found.length));
+    return found[rand]
+  }
+
+  return null
+}
+
+function find(search) {
+  //use fuzzy search to string match a collection of files
+  var results = fuzzy.filter(search, files)
+  var matches = results.map(function(el) { return el.string; });
+  return matches
+}
