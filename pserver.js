@@ -76,43 +76,65 @@ app.get('/print/:pages?/:search?', function(req, res) {
   var pages = req.params.pages
   var search = req.params.search
   printPages(pages, search);  //count of pages requested
-  res.send(JSON.stringify({success: 'print action "' + search + '" requested ' + pages + 'times'}));
+  res.send(JSON.stringify({success: 'print action [' + search + '] requested ' + pages + ' times'}));
+})
+
+//handle count request
+app.get('/count/:search?', function(req, res) {
+  var search = req.params.search
+  var output = findPages(search);  //check how many matches
+  res.send(JSON.stringify({success: 'search for [' + search + '] found ' + output.length + ' pages'}));
 })
 
 function printPages(pages, search) {
-  console.log('print action requested [', pages, '] times');
+  console.log('print action requested [', pages, '] times for [', search ,']');
 
   //set up printer
-    var printer = new nodeprinter(settings.printer);
-    var popt = {
+  var printer = new nodeprinter(settings.printer);
+  var popt = {
     media: settings.printerOpts
   }
 
   //only print a max of 10 pages at a time, if more are requested print just 1
   if (isNaN(pages) || pages > 10) { pages = 1; }
 
-  for (var i=0; i<pages; i++) {
-    //load coloring pages into array
-    if (files.length == 0) {
-      files = fs.readdirSync(fp);
-    }
-    //pick a page at random & remove it from the array of printable pages
-    var pfile = getPage(search);
-    if (pfile) {
-      var p = fp + '/' + pfile;
+  var files = getPages(search, pages);
+
+  for (var i=0; i<files.length; i++) {
+    if (files[i]) {
+      var p = fp + '/' + files[i];
       printer.printFile(p, popt);
-      console.log ('printed file:', pfile);
+      console.log ('printed file:', files[i]);
     }
   }
 }
 
-function getPage(search) {
-  //clean search string to remove spaces and trailing /\W|s$/g
+function getPages(search, count) {
+  var found = findPages(search)
+  var files = []
+  console.log ('matched:', found.length, 'pages')
 
+  //as long as we have some results
+  if (found.length > 0) {
+    if (count > found.length) { count = found.length }
+
+    //loop through requested files - and remove printed files to reduce dupes
+    for (var i=0; i<count; i++) {
+      var rand = Math.floor(Math.random() * (found.length));
+      files.push(found[rand]);
+      found.splice(rand, 1);
+    }
+  }
+
+  return files
+}
+
+function findPages(search) {
+  //clean search string to remove spaces and trailing /\W|s$/g
   search = search ? search.toLowerCase().replace(/\W/g,'') : ''
 
   //see if there are any matches
-  var found = find(search, files)
+  var found = find(search)
 
   //if there are less than 5 matches, start removing characters until we find more
   while (found.length < 5 && search.length > 0) {
@@ -120,19 +142,10 @@ function getPage(search) {
     found = found.concat(find(search))
   }
 
-  //as long as we have some results - return one
-  if (found.length > 0) {
-    console.log ('matched:', found.length, 'pages')
-    var rand = Math.floor(Math.random() * (found.length));
-    return found[rand]
-  }
-
-  return null
+  return found
 }
 
 function find(search) {
   //use fuzzy search to string match a collection of files
-  var results = fuzzy.filter(search, files)
-  var matches = results.map(function(el) { return el.string; });
-  return matches
+  return fuzzy.filter(search, files).map(function(el) { return el.string; });
 }

@@ -18,23 +18,16 @@ Colors.prototype.intentHandlers = {
     // register custom intent handlers
     PrintIntent: function (intent, session, response) {
         console.log("PrintIntent received");
-        var pages = intent.slots.Pages.value;
-        var person = intent.slots.Person.value;
-
-        var message = 'I printed ';
-
-        if (person) {
-            message = message + person;
-        }
-
-        if (!pages || pages == 1) {
-            message = message + ' one coloring page';
-        } else {
-            message = message + pages + ' coloring pages'
-        }
+        var pages = intent.slots.Pages.value ? intent.slots.Pages.value : 1;
+        var person = intent.slots.Person.value ? intent.slots.Person.value + ' ' : '' ;
+        var subject = intent.slots.Subject.value ? intent.slots.Subject.value : '';
+        var suffix = ''
+        
+        if (pages > 1) { suffix = 's'}
+        var message = 'I printed ' + person + pages + ' ' + subject + ' coloring page' + suffix;
 
         //send print request to pi node server
-        options.path = '/print/' + encodeURIComponent(pages);
+        options.path = '/print/' + encodeURIComponent(pages) + '/' + encodeURIComponent(subject); 
         httpreq(options, function(error) {
             genericResponse(error, response, message);
         });
